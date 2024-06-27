@@ -90,13 +90,13 @@ class ProjectTasksController extends Controller
     public function updateStatus(Request $request, int $project_id, int $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $item = ProjectTask::where("project_id", $id)->orderBy('payment_date', 'desc')->get()->last();
+            $item = ProjectTask::findOrFail($id);
             $request->validate([
                 'status' => ['required', new EnumValue(StatusEnum::class)],
             ]);
             $item->update([
                 'status' => $request->status,
-                'payment_date' => Carbon::now()->toDateTime()
+                'start_date' => Carbon::now()->toDateTime()
             ]);
 
             return response()->json(null, Response::HTTP_OK);

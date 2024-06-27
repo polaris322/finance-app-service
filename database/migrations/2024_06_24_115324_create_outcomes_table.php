@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users', 'id')->onDelete('cascade');;
             $table->string('name');
             $table->double('amount');
-            $table->string('cuotas');
+            $table->string('cuotas')->nullable();
             $table->enum('category', array_column(Enum\CategoryEnum::cases(), 'value'))->default(Enum\CategoryEnum::PRESTAMOS->value);
             $table->enum('type', array_column(Enum\TypeEnum::cases(), 'value'))->default(Enum\TypeEnum::FIXED->value);
             $table->enum('frequency', array_column(Enum\FrequencyEnum::cases(), 'value'))->default(Enum\FrequencyEnum::MONTHLY->value);

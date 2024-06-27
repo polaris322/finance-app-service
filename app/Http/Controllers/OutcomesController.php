@@ -7,7 +7,6 @@ use App\Enum\FrequencyEnum;
 use App\Enum\PaymentMethodEnum;
 use App\Enum\StatusEnum;
 use App\Enum\TypeEnum;
-use App\Models\Income;
 use App\Models\Outcome;
 use App\Models\OutcomeItem;
 use App\Rules\EnumValue;
@@ -23,21 +22,21 @@ class OutcomesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $year = $request->input('year', Carbon::now()->year);
-        $month = $request->input('month', Carbon::now()->month);
-
         $user = JWTAuth::parseToken()->authenticate();
         $outcomes = $user->outcomes()
-            ->withCount(['items as total_amount' => function ($query) use ($month, $year) {
-                $query->select(DB::raw('SUM(amount)'))
-                    ->whereMonth('payment_date', $month)
-                    ->whereYear('payment_date', $year);
+            ->withCount(['items as total_amount' => function ($query) {
+                // Sum the 'amount' column instead of counting rows
+                $query->select(DB::raw('SUM(amount)'));
             }])
             ->get()
             ->map(function ($outcome) {
+                // Set the status and payment_date from the last associated item
                 $outcome->status = $outcome->items->last()->status;
+                $outcome->payment_date = $outcome->items->last()->payment_date;
+
+                // Convert to array and remove the 'items' relationship
                 $newItem = $outcome->toArray();
                 unset($newItem['items']);
                 return $newItem;
@@ -54,9 +53,8 @@ class OutcomesController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'amount' => 'required|numeric|min:0',
-                'cuotas' => 'required|string',
-                'note' => 'string',
-                'attachment' => 'string',
+                'cuotas' => 'string|nullable',
+                'note' => 'string|nullable',
                 'category' => ['required', new EnumValue(CategoryEnum::class)],
                 'type' => ['required', new EnumValue(TypeEnum::class)],
                 'frequency' => ['required', new EnumValue(FrequencyEnum::class)],
@@ -67,6 +65,15 @@ class OutcomesController extends Controller
 
             $user = JWTAuth::parseToken()->authenticate();
             $outcome = $user->outcomes()->create($validatedData);
+
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $fileName = Carbon::now()->timestamp.'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('uploads', $fileName, 'public');
+                $outcome->attachment = $filePath;
+                $outcome->save();
+            }
+
             $outcome->items()->create([
                 'type'=> $request->type,
                 'amount' => $request->amount,
@@ -101,9 +108,8 @@ class OutcomesController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'amount' => 'required|numeric|min:0',
-                'cuotas' => 'required|string',
+                'cuotas' => 'string',
                 'note' => 'string',
-                'attachment' => 'string',
                 'category' => ['required', new EnumValue(CategoryEnum::class)],
                 'type' => ['required', new EnumValue(TypeEnum::class)],
                 'frequency' => ['required', new EnumValue(FrequencyEnum::class)],

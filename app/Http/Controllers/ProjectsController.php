@@ -16,7 +16,7 @@ class ProjectsController extends Controller
     public function index()
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $items = $user->projects();
+        $items = $user->projects;
         $items->map(function ($item){
             return $item->tasks = $item->tasks;
         });

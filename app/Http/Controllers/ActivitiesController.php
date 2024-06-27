@@ -16,7 +16,7 @@ class ActivitiesController extends Controller
     public function index()
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $items = $user->activities();
+        $items = $user->activities;
         $items->map(function ($item){
             return $item->tasks = $item->tasks;
         });
