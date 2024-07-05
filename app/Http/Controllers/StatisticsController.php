@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\PaymentMethodEnum;
 use App\Enum\StatusEnum;
+use App\Models\IncomeItem;
+use App\Models\OutcomeItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -10,6 +13,20 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class StatisticsController extends Controller
 {
+    /**
+     * Get total balance
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTotalBalance()
+    {
+        $income = IncomeItem::all()
+            ->sum('amount');
+        $outcome = OutcomeItem::all()
+            ->sum('amount');
+
+        return response()->json(["income" => $income, "outcome" => $outcome], Response::HTTP_OK);
+    }
+
     /**
      * Get gross income and outcome by month
      * @param Request $request
@@ -32,6 +49,12 @@ class StatisticsController extends Controller
             ->whereMonth('outcome_items.payment_date', $month)
             ->whereYear('outcome_items.payment_date', $year)
             ->sum('outcome_items.amount');
+        $ahorro = $user->outcomes()
+            ->join('outcome_items', 'outcomes.id', '=', 'outcome_items.outcome_id')
+            ->whereMonth('outcome_items.payment_date', $month)
+            ->whereYear('outcome_items.payment_date', $year)
+            ->where('payment_method', PaymentMethodEnum::AHORRO)
+            ->sum('outcome_items.amount');
         $projects = $user->projects()
             ->join('project_tasks', 'projects.id', '=', 'project_tasks.project_id')
             ->whereMonth('project_tasks.start_date', $month)
@@ -45,7 +68,7 @@ class StatisticsController extends Controller
             ->where('activity_tasks.status', StatusEnum::FINISHED->value)
             ->sum('activity_tasks.amount');
 
-        $result = array("income" => $income, "outcome" => $outcome - $projects - $activities);
+        $result = array("income" => $income, "outcome" => $outcome - $projects - $activities, "ahorro" => $ahorro);
         return response()->json($result, Response::HTTP_OK);
     }
 

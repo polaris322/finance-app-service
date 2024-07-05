@@ -30,19 +30,27 @@ Route::middleware('auth:api')->group(function () {
     Route::get('statistics/pending-outcome', [Controllers\StatisticsController::class, 'getPendingOutcome']);
     Route::get('statistics/major-outcome', [Controllers\StatisticsController::class, 'getMajorOutcome']);
     Route::get('statistics/gross-daily', [Controllers\StatisticsController::class, 'getDailyStatistics']);
+    Route::get('statistics/get-balance', [Controllers\StatisticsController::class, 'getTotalBalance']);
+
+    Route::apiResource('incomes', Controllers\IncomeController::class);
+
+    Route::apiResource('outcomes', Controllers\OutcomesController::class);
+    Route::put('outcomes/{id}/update-status', [Controllers\OutcomesController::class, 'updateStatus']);
+
+    Route::apiResource('projects', Controllers\ProjectsController::class);
+    Route::apiResource('projects.tasks', Controllers\ProjectTasksController::class);
+    Route::put('projects/{project_id}/tasks/{id}/update-status', [Controllers\ProjectTasksController::class, 'updateStatus']);
+
+    Route::apiResource('activities', Controllers\ActivitiesController::class);
+    Route::apiResource('activities.tasks', Controllers\ActivitiesTasksController::class);
+    Route::put('activities/{activity_id}/tasks/{id}/update-status', [Controllers\ActivitiesTasksController::class, 'updateStatus']);
+
+    Route::get('utilities', [Controllers\UtilityController::class, 'index']);
+    Route::post('utilities', [Controllers\UtilityController::class, 'store']);
+
+    Route::get('configuration', [Controllers\ConfigurationController::class, 'index']);
+    Route::put('configuration/update-emergency', [Controllers\ConfigurationController::class, 'updateEmergence']);
+    Route::put('configuration/update-ahorro', [Controllers\ConfigurationController::class, 'updateAhorro']);
 });
 
 Route::get("cron-job/update-dynamics", [Controllers\CronJobController::class, 'updateDynamicPaymentStatus']);
-
-Route::apiResource('incomes', Controllers\IncomeController::class)->middleware('auth:api');
-
-Route::apiResource('outcomes', Controllers\OutcomesController::class)->middleware('auth:api');
-Route::put('outcomes/{id}/update-status', [Controllers\OutcomesController::class, 'updateStatus']);
-
-Route::apiResource('projects', Controllers\ProjectsController::class)->middleware('auth:api');
-Route::apiResource('projects.tasks', Controllers\ProjectTasksController::class)->middleware('auth:api');
-Route::put('projects/{project_id}/tasks/{id}/update-status', [Controllers\ProjectTasksController::class, 'updateStatus']);
-
-Route::apiResource('activities', Controllers\ActivitiesController::class)->middleware('auth:api');
-Route::apiResource('activities.tasks', Controllers\ActivitiesTasksController::class)->middleware('auth:api');
-Route::put('activities/{activity_id}/tasks/{id}/update-status', [Controllers\ActivitiesTasksController::class, 'updateStatus']);

@@ -7,7 +7,6 @@ use App\Enum\PaymentMethodEnum;
 use App\Enum\StatusEnum;
 use App\Enum\TypeEnum;
 use App\Models\Income;
-use App\Models\IncomeItem;
 use App\Rules\EnumValue;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

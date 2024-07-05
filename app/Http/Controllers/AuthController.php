@@ -26,6 +26,11 @@ class AuthController extends Controller
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
         ]);
+        $user->configuration()->create([
+            'emergency' => 0.0,
+            'ahorro' => 0.0
+        ]);
+        $user->save();
 
         $token = JWTAuth::fromUser($user);
 
