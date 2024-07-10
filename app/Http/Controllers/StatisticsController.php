@@ -68,7 +68,7 @@ class StatisticsController extends Controller
             ->where('activity_tasks.status', StatusEnum::FINISHED->value)
             ->sum('activity_tasks.amount');
 
-        $result = array("income" => $income, "outcome" => $outcome - $projects - $activities, "ahorro" => $ahorro);
+        $result = array("income" => $income, "outcome" => $outcome + $projects + $activities, "ahorro" => $ahorro);
         return response()->json($result, Response::HTTP_OK);
     }
 
