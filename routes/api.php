@@ -31,6 +31,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('statistics/major-outcome', [Controllers\StatisticsController::class, 'getMajorOutcome']);
     Route::get('statistics/gross-daily', [Controllers\StatisticsController::class, 'getDailyStatistics']);
     Route::get('statistics/get-balance', [Controllers\StatisticsController::class, 'getTotalBalance']);
+    Route::get('statistics/get-balance-by-month', [Controllers\StatisticsController::class, 'getBalanceByMonth']);
 
     Route::apiResource('incomes', Controllers\IncomeController::class);
 

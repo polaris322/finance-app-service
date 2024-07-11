@@ -14,6 +14,41 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class StatisticsController extends Controller
 {
     /**
+     * Get balance by month
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getBalanceByMonth(Request $request)
+    {
+        $year = $request->input('year', Carbon::now()->year);
+        $month = $request->input('month', Carbon::now()->month);
+
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $income = $user->incomes()
+            ->join('income_items', 'incomes.id', '=', 'income_items.income_id')
+            ->whereMonth('income_items.payment_date', $month)
+            ->whereYear('income_items.payment_date', $year)
+            ->sum('income_items.amount');
+        $outcome = $user->outcomes()
+            ->join('outcome_items', 'outcomes.id', '=', 'outcome_items.outcome_id')
+            ->whereMonth('outcome_items.payment_date', $month)
+            ->whereYear('outcome_items.payment_date', $year)
+            ->sum('outcome_items.amount');
+        $projects = $user->projects()
+            ->join('project_tasks', 'projects.id', '=', 'project_tasks.project_id')
+            ->whereMonth('project_tasks.start_date', $month)
+            ->whereYear('project_tasks.start_date', $year)
+            ->sum('project_tasks.amount');
+        $activities = $user->activities()
+            ->join('activity_tasks', 'activities.id', '=', 'activity_tasks.activity_id')
+            ->whereMonth('activity_tasks.start_date', $month)
+            ->whereYear('activity_tasks.start_date', $year)
+            ->sum('activity_tasks.amount');
+
+        return response()->json(["balance" => $income - $outcome - $projects - $activities]);
+    }
+
+    /**
      * Get total balance
      * @return \Illuminate\Http\JsonResponse
      */
@@ -48,12 +83,14 @@ class StatisticsController extends Controller
             ->join('outcome_items', 'outcomes.id', '=', 'outcome_items.outcome_id')
             ->whereMonth('outcome_items.payment_date', $month)
             ->whereYear('outcome_items.payment_date', $year)
+            ->where('outcome_items.status', StatusEnum::FINISHED)
             ->sum('outcome_items.amount');
         $ahorro = $user->outcomes()
             ->join('outcome_items', 'outcomes.id', '=', 'outcome_items.outcome_id')
             ->whereMonth('outcome_items.payment_date', $month)
             ->whereYear('outcome_items.payment_date', $year)
             ->where('payment_method', PaymentMethodEnum::AHORRO)
+            ->where('outcome_items.status', StatusEnum::FINISHED->value)
             ->sum('outcome_items.amount');
         $projects = $user->projects()
             ->join('project_tasks', 'projects.id', '=', 'project_tasks.project_id')
