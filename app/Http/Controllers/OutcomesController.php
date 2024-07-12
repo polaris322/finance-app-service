@@ -138,10 +138,21 @@ class OutcomesController extends Controller
             $request->validate([
                 'status' => ['required', new EnumValue(StatusEnum::class)],
             ]);
-            $item->update([
-                'status' => $request->status,
-                'payment_date' => Carbon::now()->toDateTime()
-            ]);
+
+            if ($request->status === StatusEnum::PENDING->value) {
+                Outcome::findOrFail($item->outcome_id)->items()->create([
+                    "outcome_id" => $item->outcome_id,
+                    "amount" => $item->amount,
+                    "payment_date" => $request->newDate,
+                    "status" => $item->status,
+                    "type" => $item->type
+                ]);
+            } else {
+                $item->update([
+                    'status' => $request->status,
+                    'payment_date' => Carbon::now()->toDateTime()
+                ]);
+            }
 
             return response()->json(null, Response::HTTP_OK);
         }
