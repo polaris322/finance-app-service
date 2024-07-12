@@ -54,12 +54,24 @@ class StatisticsController extends Controller
      */
     public function getTotalBalance()
     {
-        $income = IncomeItem::all()
-            ->sum('amount');
-        $outcome = OutcomeItem::all()
-            ->sum('amount');
+        $user = JWTAuth::parseToken()->authenticate();
+        $income = $user->incomes()
+            ->join('income_items', 'incomes.id', '=', 'income_items.income_id')
+            ->sum('income_items.amount');
+        $outcome = $user->outcomes()
+            ->join('outcome_items', 'outcomes.id', '=', 'outcome_items.outcome_id')
+            ->where('outcome_items.status', StatusEnum::FINISHED)
+            ->sum('outcome_items.amount');
+        $projects = $user->projects()
+            ->join('project_tasks', 'projects.id', '=', 'project_tasks.project_id')
+            ->where('project_tasks.status', StatusEnum::FINISHED->value)
+            ->sum('project_tasks.amount');
+        $activities = $user->activities()
+            ->join('activity_tasks', 'activities.id', '=', 'activity_tasks.activity_id')
+            ->where('activity_tasks.status', StatusEnum::FINISHED->value)
+            ->sum('activity_tasks.amount');
 
-        return response()->json(["income" => $income, "outcome" => $outcome], Response::HTTP_OK);
+        return response()->json(["income" => $income, "outcome" => $outcome + $projects + $activities], Response::HTTP_OK);
     }
 
     /**
