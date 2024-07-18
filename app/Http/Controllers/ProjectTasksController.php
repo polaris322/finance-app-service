@@ -42,6 +42,15 @@ class ProjectTasksController extends Controller
 
             $project = Project::findOrFail($project_id);
             $newTask = $project->tasks()->create($validatedData);
+
+            // Evaluate payment status
+            $status = StatusEnum::PENDING;
+            if (Carbon::now()->gt(Carbon::parse($request->end_date))) {
+                $status = StatusEnum::FINISHED;
+            }
+            $newTask->status = $status->value;
+            $newTask->save();
+
             return response()->json($newTask, Response::HTTP_CREATED);
         } catch (ValidationException $e) {
             return response()->json([

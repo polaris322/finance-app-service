@@ -28,12 +28,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('statistics/gross-outcome', [Controllers\StatisticsController::class, 'getGrossOutcome']);
     Route::get('statistics/outcome-by-category', [Controllers\StatisticsController::class, 'getOutcomeByCategory']);
     Route::get('statistics/pending-outcome', [Controllers\StatisticsController::class, 'getPendingOutcome']);
+    Route::get('statistics/paid-outcome', [Controllers\StatisticsController::class, 'getPaidOutcome']);
     Route::get('statistics/major-outcome', [Controllers\StatisticsController::class, 'getMajorOutcome']);
     Route::get('statistics/gross-daily', [Controllers\StatisticsController::class, 'getDailyStatistics']);
     Route::get('statistics/get-balance', [Controllers\StatisticsController::class, 'getTotalBalance']);
     Route::get('statistics/get-balance-by-month', [Controllers\StatisticsController::class, 'getBalanceByMonth']);
 
     Route::apiResource('incomes', Controllers\IncomeController::class);
+    Route::put('incomes/{id}/update-status', [Controllers\IncomeController::class, 'updateStatus']);
 
     Route::apiResource('outcomes', Controllers\OutcomesController::class);
     Route::put('outcomes/{id}/update-status', [Controllers\OutcomesController::class, 'updateStatus']);

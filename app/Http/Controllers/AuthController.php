@@ -17,6 +17,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'required|string|max:15',
             'password' => 'required|string|min:8',
+            'account_email' => 'string|email|max:255'
         ]);
 
         $user = User::create([
@@ -25,6 +26,7 @@ class AuthController extends Controller
             'phone' => $validatedData['phone'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
+            'account_email' => $validatedData['account_email']
         ]);
         $user->configuration()->create([
             'emergency' => 0.0,

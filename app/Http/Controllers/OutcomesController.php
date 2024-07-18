@@ -9,6 +9,7 @@ use App\Enum\StatusEnum;
 use App\Enum\TypeEnum;
 use App\Models\Outcome;
 use App\Models\OutcomeItem;
+use App\Models\User;
 use App\Rules\EnumValue;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -25,6 +26,9 @@ class OutcomesController extends Controller
     public function index()
     {
         $user = JWTAuth::parseToken()->authenticate();
+        if (isset($user->account_email)) {
+            $user = User::where('email', $user->account_email)->first();
+        }
         $outcomes = $user->outcomes()
             ->withCount(['items as total_amount' => function ($query) {
                 // Sum the 'amount' column instead of counting rows
@@ -41,7 +45,15 @@ class OutcomesController extends Controller
                 unset($newItem['items']);
                 return $newItem;
             });
-        return response()->json($outcomes, Response::HTTP_OK);
+        $fixed = $outcomes->filter(function ($item) {
+            return $item['type'] === TypeEnum::FIXED->value;
+        })->values()->all();
+        $dynamic = $outcomes->filter(function ($item) {
+            return $item['type'] === TypeEnum::DYNAMIC->value;
+        })->values()->all();
+        return response()->json([
+            "fixed" => $fixed, "dynamic" => $dynamic
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -64,7 +76,18 @@ class OutcomesController extends Controller
             ]);
 
             $user = JWTAuth::parseToken()->authenticate();
+            if (isset($user->account_email)) {
+                $user = User::where('email', $user->account_email)->first();
+            }
             $outcome = $user->outcomes()->create($validatedData);
+
+            // Evaluate payment status
+            $status = StatusEnum::PENDING;
+            if (Carbon::now()->gt(Carbon::parse($request->start_date))) {
+                $status = StatusEnum::FINISHED;
+            }
+            $outcome->status = $status->value;
+            $outcome->save();
 
             if ($request->hasFile('attachment')) {
                 $file = $request->file('attachment');
@@ -78,7 +101,7 @@ class OutcomesController extends Controller
                 'type'=> $request->type,
                 'amount' => $request->amount,
                 'payment_date' => $request->start_date,
-                'status' => $request->status
+                'status' => $status
             ]);
             return response()->json($outcome, Response::HTTP_CREATED);
         } catch (ValidationException $e) {

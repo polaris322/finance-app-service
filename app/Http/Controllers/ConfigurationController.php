@@ -6,6 +6,7 @@ use App\Enum\FrequencyEnum;
 use App\Enum\PaymentMethodEnum;
 use App\Enum\TypeEnum;
 use App\Models\Income;
+use App\Models\User;
 use App\Rules\EnumValue;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,6 +18,9 @@ class ConfigurationController extends Controller
     public function index(Request $request)
     {
         $user = JWTAuth::parseToken()->authenticate();
+        if (isset($user->account_email)) {
+            $user = User::where('email', $user->account_email)->first();
+        }
         $config = $user->configuration;
         return response()->json($config, Response::HTTP_OK);
     }
@@ -24,6 +28,9 @@ class ConfigurationController extends Controller
     public function updateEmergence(Request $request)
     {
         $user = JWTAuth::parseToken()->authenticate();
+        if (isset($user->account_email)) {
+            $user = User::where('email', $user->account_email)->first();
+        }
         $config = $user->configuration;
         $config->update([
             'emergency' => $request->emergency
@@ -34,6 +41,9 @@ class ConfigurationController extends Controller
     public function updateAhorro(Request $request)
     {
         $user = JWTAuth::parseToken()->authenticate();
+        if (isset($user->account_email)) {
+            $user = User::where('email', $user->account_email)->first();
+        }
         $config = $user->configuration;
         $config->update([
             'ahorro' => $request->ahorro

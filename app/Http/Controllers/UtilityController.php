@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -15,6 +16,9 @@ class UtilityController extends Controller
     public function index(Request $request)
     {
         $user = JWTAuth::parseToken()->authenticate();
+        if (isset($user->account_email)) {
+            $user = User::where('email', $user->account_email)->first();
+        }
         $utilities = $user->utilities;
         return response()->json($utilities, Response::HTTP_OK);
     }
@@ -31,6 +35,9 @@ class UtilityController extends Controller
             ]);
 
             $user = JWTAuth::parseToken()->authenticate();
+            if (isset($user->account_email)) {
+                $user = User::where('email', $user->account_email)->first();
+            }
             $user->utilities()->create($validatedData);
             return response()->json(null, Response::HTTP_CREATED);
         } catch (ValidationException $e) {

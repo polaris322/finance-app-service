@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,9 @@ class ActivitiesController extends Controller
     public function index()
     {
         $user = JWTAuth::parseToken()->authenticate();
+        if (isset($user->account_email)) {
+            $user = User::where('email', $user->account_email)->first();
+        }
         $items = $user->activities;
         $items->map(function ($item){
             return $item->tasks = $item->tasks;
@@ -34,6 +38,9 @@ class ActivitiesController extends Controller
             ]);
 
             $user = JWTAuth::parseToken()->authenticate();
+            if (isset($user->account_email)) {
+                $user = User::where('email', $user->account_email)->first();
+            }
             $newItem = $user->activities()->create($validatedData);
             return response()->json($newItem, Response::HTTP_CREATED);
         } catch (ValidationException $e) {

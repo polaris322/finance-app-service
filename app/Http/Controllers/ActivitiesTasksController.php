@@ -45,6 +45,12 @@ class ActivitiesTasksController extends Controller
 
             $activity = Activity::findOrFail($activity_id);
             $newTask = $activity->tasks()->create($validatedData);
+            // Evaluate payment status
+            $status = StatusEnum::PENDING;
+            if (Carbon::now()->gt(Carbon::parse($request->end_date))) {
+                $status = StatusEnum::FINISHED;
+            }
+            $newTask->status = $status->value;
             return response()->json($newTask, Response::HTTP_CREATED);
         } catch (ValidationException $e) {
             return response()->json([
